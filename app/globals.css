@@ -1,0 +1,169 @@
+@import "tailwindcss";
+@import "./Home.css";
+@import './components/TestimonialCarousel.css';
+
+/* New global color palette: Sapphire (primary) + Coral (accent) + Gold (highlight) */
+:root{
+  /* Primary - Sapphire */
+  --primary-50: #f0f7ff;
+  --primary-100: #e0efff;
+  --primary-200: #bfe0ff;
+  --primary-500: #2563eb; /* sapphire */
+  --primary-600: #1e40af;
+  --primary-700: #17327f;
+
+  /* Accent - Coral */
+  --accent-50: #fff5f6;
+  --accent-100: #ffeef1;
+  --accent-500: #fb7185; /* coral */
+  --accent-600: #e11d48;
+  --accent-700: #b31236;
+
+  /* Secondary / highlight - Gold */
+  --gold-50: #fff9ed;
+  --gold-500: #f59e0b;
+  --gold-600: #b45309;
+
+  /* Neutrals */
+  --bg: #ffffff;
+  --fg: #111827;
+  --muted: #6b7280;
+  --glass-border: rgba(37,99,235,0.08);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #071027;
+    --fg: #e6eefc;
+    --muted: #94a3b8;
+    --glass-border: rgba(37,99,235,0.12);
+  }
+}
+
+/* Basic app colors */
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Map commonly used Tailwind emerald/teal/cyan utility classes to the new palette
+   This lets you preview the new colors globally without changing component markup.
+   Note: Tailwind utilities use CSS variables for gradients (--tw-gradient-from/..).
+*/
+.from-emerald-500,
+.from-teal-500,
+.from-cyan-500 { --tw-gradient-from: var(--primary-500); }
+.via-teal-600,
+.via-cyan-600,
+.via-emerald-600 { --tw-gradient-via: var(--accent-600); }
+.to-teal-600,
+.to-cyan-600,
+.to-emerald-600 { --tw-gradient-to: var(--accent-500); }
+
+.bg-emerald-50,
+.bg-teal-50,
+.bg-cyan-50 { background-color: var(--primary-50) !important; color: inherit; }
+
+.bg-emerald-100,
+.bg-teal-100,
+.bg-cyan-100 { background-color: var(--primary-100) !important; }
+
+.bg-emerald-500,
+.bg-teal-500,
+.bg-cyan-500 { background-color: var(--primary-500) !important; }
+
+.hover\:bg-emerald-600:hover,
+.hover\:bg-teal-600:hover,
+.hover\:bg-cyan-600:hover,
+.bg-emerald-600,
+.bg-teal-600,
+.bg-cyan-600 { background-color: var(--primary-600) !important; }
+
+.text-emerald-700,
+.text-teal-700,
+.text-cyan-700 { color: var(--primary-700) !important; }
+
+.text-emerald-600,
+.text-teal-600,
+.text-cyan-600 { color: var(--primary-600) !important; }
+
+.text-emerald-800,
+.text-teal-800,
+.text-cyan-800 { color: var(--primary-500) !important; }
+
+.border-emerald-200,
+.border-teal-200,
+.border-cyan-200 { border-color: var(--glass-border) !important; }
+
+.bg-emerald-50\/30,
+.bg-emerald-50\/40,
+.bg-emerald-50\/80 { background-color: var(--primary-50) !important; }
+
+/* Buttons and badges previously using emerald/teal -> use coral accents */
+.bg-emerald-500,
+.from-emerald-500.to-teal-600,
+.bg-gradient-to-r.from-emerald-500 { background-image: linear-gradient(90deg, var(--primary-500), var(--accent-500)) !important; }
+.text-emerald-600 { color: var(--accent-500) !important; }
+
+/* Specific helpers used in components */
+.inline-flex .bg-emerald-100,
+.bg-emerald-100 { background-color: var(--primary-100) !important; }
+.inline-flex .text-emerald-800,
+.text-emerald-800 { color: var(--primary-600) !important; }
+
+/* Glass card border override */
+.faq-card-glass {
+  border: 1px solid var(--glass-border) !important;
+}
+
+/* Gradient stop helpers for SVG defs (if you embed gradients by id) */
+.stop-primary { stop-color: var(--primary-500) !important; }
+.stop-accent { stop-color: var(--accent-500) !important; }
+.stop-gold { stop-color: var(--gold-500) !important; }
+
+/* Small utility shims to preserve contrast for badges and labels */
+.badge-primary {
+  background: linear-gradient(90deg, var(--primary-500), var(--accent-500));
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+/* Keep existing dark glass look but tint to palette */
+.dark .faq-card-glass {
+  background: rgba(7,16,39,0.80);
+  border: 1px solid rgba(37,99,235,0.12);
+}
+
+/* Optional: tweak anchor focus rings to match new palette */
+:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+}
+
+/* Minor element-specific tweaks to improve contrast and cohesion */
+header, nav, .container {
+  color: var(--fg);
+}
+
+/* Ensure links use accent color */
+a {
+  color: var(--primary-500);
+  text-decoration: none;
+}
+a:hover { color: var(--accent-500); text-decoration: underline; }
+
+/* Utility: small badge used across components */
+.kit-badge {
+  background: linear-gradient(90deg, var(--primary-500), var(--accent-500));
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

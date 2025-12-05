@@ -1,0 +1,35 @@
+"use client";
+
+import { motion } from "framer-motion";
+import ReportCard from "./ReportCard";
+import { Report } from "../types/report";
+
+export default function ReportList({ reports }: { reports: Report[] }) {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1, delayChildren: 0.2 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
+  return (
+    <motion.div
+      className="space-y-3 md:space-y-4"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      {reports.map((r) => (
+        <motion.div key={r.id} variants={itemVariants}>
+          <ReportCard report={r} />
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}

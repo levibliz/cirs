@@ -1,0 +1,12 @@
+[00:00:08.285] Server  WARN     ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:09.787] Server  LOG      ✓ Ready in 8.1s
+[00:00:15.250] Server  LOG      ○ Compiling /_not-found/page ...
+[00:00:35.559] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[00:02:06.178] Server  ERROR   {}
+[00:02:06.242] Server  ERROR    ⨯ "unhandledRejection:" {}
+[00:02:06.313] Server  ERROR    ⨯ "unhandledRejection: " {}
+[00:03:03.389] Server  ERROR    ⨯ Error: aborted
+[00:03:17.864] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:18.087] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview
+[00:03:40.144] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:41.145] Browser WARN    Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview

@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 16, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/middleware.ts"],"sourcesContent":["import { clerkMiddleware, createRouteMatcher } from \"@clerk/nextjs/server\";\r\n\r\n// Public routes\r\nconst isPublicRoute = createRouteMatcher([\r\n  \"/\",\r\n  \"/sign-in(.*)\",\r\n  \"/sign-up(.*)\",\r\n]);\r\n\r\nexport default clerkMiddleware((auth, req) => {\r\n  if (!isPublicRoute(req)) {\r\n    auth.protect(); // <-- fixed here\r\n  }\r\n});\r\n\r\nexport const config = {\r\n  matcher: [\r\n    // Protect everything except static files\r\n    \"/((?!_next|.*\\\\..*).*)\",\r\n    // Protect API routes too\r\n    \"/(api)(.*)\",\r\n  ],\r\n};\r\n"],"names":[],"mappings":";;;;;;AAAA;AAAA;;AAEA,gBAAgB;AAChB,MAAM,gBAAgB,IAAA,wMAAkB,EAAC;IACvC;IACA;IACA;CACD;uCAEc,IAAA,wMAAe,EAAC,CAAC,MAAM;IACpC,IAAI,CAAC,cAAc,MAAM;QACvB,KAAK,OAAO,IAAI,iBAAiB;IACnC;AACF;AAEO,MAAM,SAAS;IACpB,SAAS;QACP,yCAAyC;QACzC;QACA,yBAAyB;QACzB;KACD;AACH"}}]
+}

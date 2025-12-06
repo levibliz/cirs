@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/User/Desktop/levi/cirs/frontend/app/layout.tsx"],"sourcesContent":["import { ClerkProvider } from \"@clerk/nextjs\";\nimport \"./globals.css\";\n\nexport const metadata = {\n  title: \"CIRS - Community Issue Reporting System\",\n  description: \"Empowering citizens to report and track local civic issues for a better community.\",\n};\n\nexport default function RootLayout({ children }) {\n  return (\n    <ClerkProvider>\n      <html lang=\"en\">\n        <body>{children}</body>\n      </html>\n    </ClerkProvider>\n  );\n}\n"],"names":[],"mappings":";;;;;;;AAAA;;;;AAGO,MAAM,WAAW;IACtB,OAAO;IACP,aAAa;AACf;AAEe,SAAS,WAAW,EAAE,QAAQ,EAAE;IAC7C,qBACE,8OAAC,0LAAa;kBACZ,cAAA,8OAAC;YAAK,MAAK;sBACT,cAAA,8OAAC;0BAAM;;;;;;;;;;;;;;;;AAIf"}}]
+}

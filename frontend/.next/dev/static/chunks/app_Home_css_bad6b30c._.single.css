@@ -1,0 +1,66 @@
+/* [project]/app/Home.css [app-client] (css) */
+@tailwind base;
+
+@tailwind components;
+
+@tailwind utilities;
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: .6s ease-out forwards fadeUp;
+}
+
+.animate-on-scroll {
+  opacity: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--primary-50, #f1f5f9);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--bg, #071027);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent-500, #fb7185), var(--primary-500, #2563eb));
+  background-clip: padding-box;
+  border: 2px solid #0000;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--accent-600, #e11d48), var(--primary-600, #1e40af));
+}
+
+.gradient-text {
+  background-image: linear-gradient(90deg, var(--primary-500, #2563eb), var(--accent-500, #fb7185), var(--gold-500, #f59e0b));
+  color: #0000;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@media (max-width: 768px) {
+  @apply px-4;
+}
+
+/*# sourceMappingURL=app_Home_css_bad6b30c._.single.css.map*/

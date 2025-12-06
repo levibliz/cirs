@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/components/TestimonialCarousel.css"],"sourcesContent":[".carousel-container {\r\n  perspective: 1000px;\r\n}\r\n\r\n@media (max-width: 640px) {\r\n  .carousel-mobile {\r\n    padding: 1rem;\r\n  }\r\n}\r\n\r\n.dot-active {\r\n  animation: dotPulse 0.5s ease-out;\r\n}\r\n\r\n@keyframes dotPulse {\r\n  0% {\r\n    transform: scale(0.8);\r\n  }\r\n  50% {\r\n    transform: scale(1.1);\r\n  }\r\n  100% {\r\n    transform: scale(1);\r\n  }\r\n}"],"names":[],"mappings":"AAAA;;;;AAIA;EACE;;;;;AAKF;;;;AAIA"}}]
+}

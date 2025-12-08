@@ -86,33 +86,43 @@ export class ClerkAuthGuard implements CanActivate {
         throw new UnauthorizedException('Invalid signing key');
       }
 
-      // Verify token; if you're testing locally and audience mismatch is likely,
-      // you can temporarily remove 'audience' from options to check.
+      // Verify token signature and issuer first (do NOT force audience here)
       const verifyOptions: jwt.VerifyOptions = {
         algorithms: ['RS256'],
         issuer: this.issuer,
-        audience: this.audience,
       };
 
       let payload: any;
       try {
         payload = jwt.verify(token, signingKey, verifyOptions);
       } catch (verifyErr) {
-        // If verify failed, log reason in dev for diagnosis then rethrow a friendly error
         if (process.env.NODE_ENV !== 'production') {
           this.logger.warn('JWT verify failed', verifyErr as any);
-          // Try verifying without audience to see if audience was the problem (dev-only)
-          try {
-            const payloadNoAud = jwt.verify(token, signingKey, {
-              algorithms: ['RS256'],
-              issuer: this.issuer,
-            });
-            this.logger.warn('Token verifies without audience check (audience mismatch).');
-          } catch (e2) {
-            this.logger.warn('Still failing without audience:', e2 as any);
-          }
         }
         throw new UnauthorizedException('Invalid or expired token');
+      }
+
+      // Manually validate audience: some tokens may not populate `aud` but set `azp`.
+      const tokenAud = payload?.aud;
+      const tokenAzp = payload?.azp;
+      const expectedAud = this.audience;
+
+      const audMatches = ((): boolean => {
+        if (!expectedAud) return true;
+        if (!tokenAud && !tokenAzp) return false;
+        if (Array.isArray(tokenAud)) return tokenAud.includes(expectedAud);
+        if (typeof tokenAud === 'string') return tokenAud === expectedAud;
+        if (typeof tokenAzp === 'string') return tokenAzp === expectedAud;
+        return false;
+      })();
+
+      if (!audMatches) {
+        if (process.env.NODE_ENV !== 'production') {
+          this.logger.warn(
+            `JWT audience invalid. expected: ${expectedAud}, got aud=${JSON.stringify(tokenAud)}, azp=${JSON.stringify(tokenAzp)}`,
+          );
+        }
+        throw new UnauthorizedException('Token audience mismatch');
       }
 
       // success

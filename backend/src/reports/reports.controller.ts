@@ -8,15 +8,15 @@ import {
   Delete,
   UseGuards,
   Req,
-} from '@nestjs/common';
-import { Request } from 'express';
-import { CreateReportDto } from './dto/create-report.dto';
-import { UpdateReportDto } from './dto/update-report.dto';
-import { ReportsService } from './reports.service';
-import { ClerkAuthGuard } from '../auth/clerk-auth.guard';
-import { AdminGuard } from '../auth/admin.guard';
+} from "@nestjs/common";
+import { Request } from "express";
+import { CreateReportDto } from "./dto/create-report.dto";
+import { UpdateReportDto } from "./dto/update-report.dto";
+import { ReportsService } from "./reports.service";
+import { ClerkAuthGuard } from "../auth/clerk-auth.guard";
+import { AdminGuard } from "../auth/admin.guard";
 
-@Controller('api/report')
+@Controller("api/report")
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
@@ -36,16 +36,16 @@ export class ReportsController {
 
   // Get single report
   @UseGuards(ClerkAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(":id")
+  findOne(@Param("id") id: string) {
     return this.reportsService.getReport(id);
   }
 
-  // Update report (PATCH endpoint - flexible updates)
+  // Update report
   @UseGuards(ClerkAuthGuard)
-  @Patch(':id')
+  @Patch(":id")
   update(
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() dto: UpdateReportDto,
     @Req() req: Request & { user: any },
   ) {
@@ -54,8 +54,8 @@ export class ReportsController {
 
   // Delete report (admin only)
   @UseGuards(ClerkAuthGuard, AdminGuard)
-  @Delete(':id')
-  delete(@Param('id') id: string) {
+  @Delete(":id")
+  delete(@Param("id") id: string) {
     return this.reportsService.deleteReport(id);
   }
 }

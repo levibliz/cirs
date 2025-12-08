@@ -1,22 +1,25 @@
 "use client";
-
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReportList from "./components/ReportList";
 import { getReports } from "./lib/api";
 import ReportForm from "./components/ReportForm";
-import ReportList from "./components/ReportList";
-import { Report } from "./types/report";
 import Link from "next/link";
+import { supabase } from "../../lib/supabaseClient";
+import { Report } from "./types/report";
+import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 
 export default function Dashboard() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const { getToken } = useAuth();
 
   const loadReports = async () => {
     setLoading(true);
     try {
-      const data = await getReports();
+      const token = await getToken();
+      const data = await getReports(token);
       setReports(data);
     } catch (error) {
       console.error("Failed to load reports:", error);
@@ -27,6 +30,58 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadReports();
+
+    // subscribe to realtime changes on reports table (only if supabase client configured)
+    if (!supabase) {
+      console.warn('Skipping Supabase realtime subscription: supabase client not configured');
+      return;
+    }
+
+    const channel = supabase
+      .channel('public:reports')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'reports' },
+        (payload) => {
+          const record = payload.record as any;
+          const type = payload.eventType;
+
+          if (type === 'INSERT') {
+            setReports((prev) => [
+              {
+                id: record.id,
+                title: record.title,
+                description: record.description,
+                category: record.category,
+                location: record.location,
+                status: record.status,
+                imageUrl: record.image_url,
+                createdAt: record.created_at,
+              },
+              ...prev,
+            ]);
+          } else if (type === 'UPDATE') {
+            setReports((prev) => prev.map((r) => (r.id === record.id ? {
+              id: record.id,
+              title: record.title,
+              description: record.description,
+              category: record.category,
+              location: record.location,
+              status: record.status,
+              imageUrl: record.image_url,
+              createdAt: record.created_at,
+            } : r)));
+          } else if (type === 'DELETE') {
+            setReports((prev) => prev.filter((r) => r.id !== record.id));
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      // cleanup subscription
+      try { channel.unsubscribe(); } catch (e) { /* ignore */ }
+    };
   }, []);
 
   const filteredReports =

@@ -67,7 +67,7 @@ function Home() {
   useEffect(() => {
     const profileJustSubmitted = sessionStorage.getItem('profileJustSubmitted') === 'true';
     if (isSignedIn && !profileLoading && !isProfileComplete && !profileJustSubmitted) {
-      router.push('/profile-setup');
+      router.push('/dashboard');
     }
   }, [isSignedIn, profileLoading, isProfileComplete, router]);
 

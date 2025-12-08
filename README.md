@@ -153,14 +153,49 @@ reports
 
 Column	    Type	    Description
 
-id  	    UUID	    Primary key
-title	    text	    Report title
-description	text	    Detailed explanation
-category	text	    Issue type
-location	text	    User-specified location
-imageUrl	text	    Optional image
-status	    text	    pending / in-progress / resolved
-createdAt	timestamp	Auto generated
+```
+-- Create reports table
+CREATE TABLE reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  category TEXT NOT NULL,
+  location TEXT NOT NULL,
+  image_url TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can view all reports (public read)
+CREATE POLICY "Anyone can view reports"
+  ON reports FOR SELECT
+  USING (true);
+
+-- Policy: Users can insert their own reports
+CREATE POLICY "Users can insert their own reports"
+  ON reports FOR INSERT
+  WITH CHECK (auth.uid()::text = user_id);
+
+-- Policy: Users can update their own reports
+CREATE POLICY "Users can update their own reports"
+  ON reports FOR UPDATE
+  USING (auth.uid()::text = user_id)
+  WITH CHECK (auth.uid()::text = user_id);
+
+-- Policy: Users can delete their own reports
+CREATE POLICY "Users can delete their own reports"
+  ON reports FOR DELETE
+  USING (auth.uid()::text = user_id);
+
+-- Optional: Create index on user_id for faster queries
+CREATE INDEX reports_user_id_idx ON reports(user_id);
+CREATE INDEX reports_created_at_idx ON reports(created_at DESC);
+```
 
 
 See database/schema.sql for full schema.

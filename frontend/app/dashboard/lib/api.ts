@@ -1,17 +1,54 @@
 import { Report } from "../types/report";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
-export const getReports = async (): Promise<Report[]> => {
-  const res = await fetch(`${BASE}/api/report`, { cache: "no-store" });
-  return res.json();
-};
+/**
+ * GET all reports
+ */
+export async function getReports(token: string | null): Promise<Report[]> {
+  if (!token) {
+    console.warn("No auth token provided to getReports");
+    return [];
+  }
 
-export const createReport = async (data: Partial<Report>) => {
-  const res = await fetch(`${BASE}/api/report`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
+  const res = await fetch(`${API_URL}/report`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
+
+  if (!res.ok) {
+    console.error("Failed to fetch reports:", await res.text());
+    throw new Error("Failed to fetch reports");
+  }
+
   return res.json();
-};
+}
+
+/**
+ * CREATE report
+ */
+export async function createReport(
+  report: Omit<Report, "id" | "createdAt" | "status">,
+  token: string | null
+): Promise<Report> {
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+
+  const res = await fetch(`${API_URL}/report`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(report),
+  });
+
+  if (!res.ok) {
+    console.error("Failed to create report:", await res.text());
+    throw new Error("Failed to create report");
+  }
+
+  return res.json();
+}

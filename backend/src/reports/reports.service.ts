@@ -12,9 +12,12 @@ export class ReportsService {
       .from('reports')
       .insert([
         {
-          ...data,
-          user_id: userId,
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          location: data.location,
           image_url: data.imageUrl,
+          user_id: userId,
           status: 'pending',
         },
       ])

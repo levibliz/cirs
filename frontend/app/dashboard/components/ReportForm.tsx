@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { motion } from "framer-motion";
 import { createReport } from "../lib/api";
 import { v4 as uuid } from "uuid";
@@ -35,6 +36,9 @@ export default function ReportForm({ onCreate }: { onCreate: (r: Report) => void
     category: "infrastructure",
     location: "",
   });
+
+  // Clerk auth hook must be at top-level
+  const { getToken, isLoaded, isSignedIn } = useAuth();
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
@@ -78,14 +82,21 @@ export default function ReportForm({ onCreate }: { onCreate: (r: Report) => void
 
     setLoading(true);
     try {
-      const payload: Partial<Report> = {
-        id: uuid(),
-        ...form,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      };
+      // Build payload that matches backend CreateReportDto (no extra properties)
+      const payload = {
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        location: form.location,
+      } as const;
 
-      const created = await createReport(payload);
+      if (!isLoaded || !isSignedIn) {
+        throw new Error('You must be signed in to submit a report');
+      }
+
+      const token = await getToken();
+
+      const created = await createReport(payload, token);
       onCreate(created);
 
       setForm({ title: "", description: "", category: "infrastructure", location: "" });

@@ -1,265 +1,196 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@clerk/nextjs";
-import { motion } from "framer-motion";
-import { createReport } from "../lib/api";
-import { v4 as uuid } from "uuid";
-import { Report } from "../types/report";
+import { useState, FormEvent } from 'react';
+import { createReport } from '../lib/api';
+import { supabase } from '../../../lib/supabaseClient';
+import { useUser, useAuth } from '@clerk/nextjs';
+import { Report } from '../types/report';
 
-const CATEGORIES = [
-  { id: "infrastructure", label: "Infrastructure", icon: "🛣️" },
-  { id: "security", label: "Security", icon: "🔒" },
-  { id: "emergency", label: "Emergency", icon: "🚨" },
-  { id: "public-service", label: "Public Service", icon: "🏛️" },
-  { id: "environment", label: "Environment", icon: "🌱" },
-  { id: "health", label: "Health", icon: "⚕️" },
-];
+const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [otherCategory, setOtherCategory] = useState('');
+  const [location, setLocation] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-interface FormData {
-  title: string;
-  description: string;
-  category: string;
-  location: string;
-}
+  const { user } = useUser();
+  const { getToken } = useAuth();
 
-interface FormErrors {
-  title?: string;
-  description?: string;
-  location?: string;
-}
+  const predefinedCategories = [
+    'Roads & Streets',
+    'Public Transport',
+    'Waste Management',
+    'Parks & Recreation',
+    'Public Safety',
+  ];
 
-export default function ReportForm({ onCreate }: { onCreate: (r: Report) => void }) {
-  const [form, setForm] = useState<FormData>({
-    title: "",
-    description: "",
-    category: "infrastructure",
-    location: "",
-  });
-
-  // Clerk auth hook must be at top-level
-  const { getToken, isLoaded, isSignedIn } = useAuth();
-
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!form.title.trim()) {
-      newErrors.title = "Title is required";
-    } else if (form.title.length < 5) {
-      newErrors.title = "Title must be at least 5 characters";
-    }
-
-    if (!form.description.trim()) {
-      newErrors.description = "Description is required";
-    } else if (form.description.length < 10) {
-      newErrors.description = "Description must be at least 10 characters";
-    }
-
-    if (!form.location.trim()) {
-      newErrors.location = "Location is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-    if (errors[name as keyof FormErrors]) {
-      setErrors({ ...errors, [name]: undefined });
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setImageFile(e.target.files[0]);
     }
   };
 
-  const submit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setError('You must be logged in to create a report.');
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
 
-    if (!validateForm()) return;
-
-    setLoading(true);
     try {
-      // Build payload that matches backend CreateReportDto (no extra properties)
-      const payload = {
-        title: form.title,
-        description: form.description,
-        category: form.category,
-        location: form.location,
-      } as const;
+      const reportData: any = {
+        title,
+        description,
+        location,
+      };
 
-      if (!isLoaded || !isSignedIn) {
-        throw new Error('You must be signed in to submit a report');
+      // 1. Handle image upload if a file is selected
+      if (imageFile) {
+        const fileName = `${user.id}/${Date.now()}_${imageFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('report-images')
+          .upload(fileName, imageFile);
+
+        if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('report-images')
+          .getPublicUrl(uploadData.path);
+
+        reportData.imageUrl = urlData.publicUrl; // save this to your report
       }
 
-      const token = await getToken();
+      // 2. Get auth token for backend API call
+      const token = await getToken({ template: 'supabase' });
 
-      const created = await createReport(payload, token);
-      onCreate(created);
+      // 3. Determine the final category
+      const finalCategory = category === 'Other' ? otherCategory : category;
+      if (!finalCategory) {
+        throw new Error('Category is required.');
+      }
+      reportData.category = finalCategory;
 
-      setForm({ title: "", description: "", category: "infrastructure", location: "" });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (error) {
-      console.error("Failed to create report:", error);
-      alert("Failed to create report. Please try again.");
+      // 4. Submit the report
+      const newReport = await createReport(
+        reportData,
+        token,
+      );
+
+      // 5. Reset form and notify parent
+      setTitle('');
+      setDescription('');
+      setCategory('');
+      setOtherCategory('');
+      setLocation('');
+      setImageFile(null);
+      onCreate(newReport);
+    } catch (err: any) {
+      console.error('Failed to create report:', err);
+      setError(err.message || 'An unexpected error occurred.');
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <motion.form
-      onSubmit={submit}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="rounded-xl border shadow-sm p-4 md:p-6 sticky top-20"
-      style={{
-        borderColor: 'var(--glass-border)',
-        backgroundColor: 'rgba(255, 255, 255, 0.5)',
-        backdropFilter: 'blur(10px)',
-      }}
-    >
-      <h2 className="text-xl md:text-2xl font-bold mb-4">Report an Issue</h2>
-
-      {/* Success Message */}
-      {success && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          className="mb-4 p-3 rounded-lg text-sm font-medium"
-          style={{
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            color: 'var(--primary-600)',
-            border: '1px solid var(--primary-200)',
-          }}
-        >
-          ✅ Report submitted successfully!
-        </motion.div>
-      )}
-
-      {/* Title */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Title *</label>
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-gray-800">Create a New Report</h2>
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">{error}</div>}
+      
+      <div>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
         <input
+          id="title"
           type="text"
-          name="title"
-          placeholder="Brief title of the issue"
-          className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border text-sm md:text-base transition"
-          style={{
-            borderColor: errors.title ? 'var(--accent-500)' : 'var(--primary-200)',
-            backgroundColor: 'var(--bg)',
-            color: 'var(--fg)',
-          }}
-          value={form.title}
-          onChange={handleChange}
-          disabled={loading}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
-        {errors.title && (
-          <p style={{ color: 'var(--accent-500)' }} className="text-xs mt-1">
-            {errors.title}
-          </p>
-        )}
       </div>
 
-      {/* Category */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2">Category *</label>
-        <div className="grid grid-cols-2 gap-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setForm({ ...form, category: cat.id })}
-              className="p-2 md:p-3 rounded-lg border text-xs md:text-sm font-medium transition-all"
-              style={{
-                borderColor: form.category === cat.id ? 'var(--primary-500)' : 'var(--primary-200)',
-                backgroundColor: form.category === cat.id ? 'var(--primary-100)' : 'var(--bg)',
-                color: form.category === cat.id ? 'var(--primary-700)' : 'var(--fg)',
-              }}
-              disabled={loading}
-            >
-              <span className="mr-1">{cat.icon}</span>
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Description */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-1">Description *</label>
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
         <textarea
-          name="description"
-          placeholder="Provide detailed description of the issue"
-          className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border text-sm md:text-base transition resize-none"
+          id="description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
           rows={4}
-          style={{
-            borderColor: errors.description ? 'var(--accent-500)' : 'var(--primary-200)',
-            backgroundColor: 'var(--bg)',
-            color: 'var(--fg)',
-          }}
-          value={form.description}
-          onChange={handleChange}
-          disabled={loading}
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
-        {errors.description && (
-          <p style={{ color: 'var(--accent-500)' }} className="text-xs mt-1">
-            {errors.description}
-          </p>
+      </div>
+
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-700">Category</label>
+        <select
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        >
+          <option value="">Select a category</option>
+          {predefinedCategories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+          <option value="Other">Other</option>
+        </select>
+        
+        {category === 'Other' && (
+          <input
+            type="text"
+            value={otherCategory}
+            onChange={(e) => setOtherCategory(e.target.value)}
+            placeholder="Enter custom category"
+            className="mt-2 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
         )}
       </div>
 
-      {/* Location */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-1">Location *</label>
+      <div>
+        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
         <input
+          id="location"
           type="text"
-          name="location"
-          placeholder="Street address or area"
-          className="w-full px-3 md:px-4 py-2 md:py-3 rounded-lg border text-sm md:text-base transition"
-          style={{
-            borderColor: errors.location ? 'var(--accent-500)' : 'var(--primary-200)',
-            backgroundColor: 'var(--bg)',
-            color: 'var(--fg)',
-          }}
-          value={form.location}
-          onChange={handleChange}
-          disabled={loading}
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          required
+          className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         />
-        {errors.location && (
-          <p style={{ color: 'var(--accent-500)' }} className="text-xs mt-1">
-            {errors.location}
-          </p>
-        )}
       </div>
 
-      {/* Submit Button */}
-      <motion.button
+      <div>
+        <label htmlFor="image" className="block text-sm font-medium text-gray-700">Image (Optional)</label>
+        <input
+          id="image"
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+          className="mt-1 block w-full text-sm text-gray-500
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0
+            file:text-sm file:font-semibold
+            file:bg-indigo-50 file:text-indigo-700
+            hover:file:bg-indigo-100"
+        />
+      </div>
+
+      <button
         type="submit"
-        disabled={loading}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="w-full px-4 py-2 md:py-3 rounded-lg font-medium text-white text-sm md:text-base transition-all"
-        style={{
-          background: 'linear-gradient(90deg, var(--primary-500), var(--accent-500))',
-          opacity: loading ? 0.7 : 1,
-          cursor: loading ? 'not-allowed' : 'pointer',
-        }}
+        disabled={isSubmitting}
+        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
       >
-        {loading ? (
-          <span className="flex items-center justify-center gap-2">
-            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
-            Submitting...
-          </span>
-        ) : (
-          "Submit Report"
-        )}
-      </motion.button>
-    </motion.form>
+        {isSubmitting ? 'Submitting...' : 'Submit Report'}
+      </button>
+    </form>
   );
-}
+};
+
+export default ReportForm;

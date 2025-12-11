@@ -117,10 +117,10 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between mb-6 flex-col sm:flex-row gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "var(--fg)" }}>
-              Admin Dashboard (Frontend-only)
+              Admin Dashboard 
             </h1>
             <p style={{ color: "var(--muted)" }} className="text-sm mt-1">
-              Manage reports locally in your browser (stored in localStorage).
+              Manage reports 
             </p>
           </div>
 

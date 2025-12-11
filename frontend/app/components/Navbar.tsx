@@ -12,6 +12,9 @@ export default function Navbar() {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
+  const isAdmin = user?.publicMetadata?.role === 'admin' || user?.publicMetadata?.role === 'super_admin';
+  const dashboardUrl = isAdmin ? '/admin' : '/dashboard';
+
   return (
     <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 dark:border-slate-700/20 shadow-sm">
       <div className="container mx-auto px-4 md:px-6">
@@ -31,9 +34,12 @@ export default function Navbar() {
             <Link href="/#faqs" className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               FAQs
             </Link>
-            <Link href="/#download" className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              Download
-            </Link>
+            {isSignedIn && (
+              <Link href={dashboardUrl} className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                Dashboard
+              </Link>
+            )}
+            
             
             <div className="flex items-center gap-3">
               {isSignedIn ? (
@@ -90,13 +96,15 @@ export default function Navbar() {
             >
               FAQs
             </Link>
-            <Link
-              href="/#download"
-              className="block px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Download
-            </Link>
+            {isSignedIn && (
+              <Link
+                href={dashboardUrl}
+                className="block px-4 py-2 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Dashboard
+              </Link>
+            )}
             <div className="px-4 pt-2 border-t border-slate-200/20 dark:border-slate-700/20">
               {isSignedIn ? (
                 <UserButton afterSignOutUrl="/" />

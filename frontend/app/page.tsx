@@ -13,6 +13,7 @@ import EnhancedQRCode from "./components/EnhancedQRCode";
 import Link from "next/link";
 import FeaturesSection from "./components/FeaturesSection";
 import HeroSection from "./components/HeroSection";
+import ComingSoonModal from "./components/ComingSoonModal";
 
 interface FAQ {
   id: number;
@@ -43,6 +44,7 @@ interface Step {
 function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [faqFilter, setFaqFilter] = useState("All");
+  const [showComingSoon, setShowComingSoon] = useState(false);
   const router = useRouter();
   const { isSignedIn, signOut } = useAuth();
   const { user } = useUser();
@@ -248,7 +250,7 @@ function Home() {
               <div className="inline-flex items-center px-5 py-3 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/50 dark:to-teal-900/50 border border-emerald-200/60 dark:border-emerald-700/50 mb-8 shadow-sm">
                 <span className="text-emerald-800 dark:text-emerald-200 font-bold text-sm uppercase tracking-wider">How It Works</span>
               </div>
-              
+               
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
                 <span className="text-slate-800 dark:text-slate-200">Simple process,</span>
                 <br />
@@ -256,7 +258,7 @@ function Home() {
                   powerful results
                 </span>
               </h2>
-              
+               
               <p className="text-slate-600 dark:text-slate-400 text-lg md:text-xl max-w-4xl mx-auto leading-relaxed">
                 CIRS makes it easy to report issues and track their resolution in just a few simple steps. 
                 Join thousands of citizens making their communities better.
@@ -554,71 +556,50 @@ function Home() {
         </motion.section>
 
         {/* Download Section */}
-        <section id="download" className="py-6 md:py-12 lg:py-16 bg-emerald-50 dark:bg-[#161c28] dark:text-white">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-              <div className="flex flex-col justify-center space-y-4 animate-on-scroll">
-                <div className="space-y-2">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight bg-gradient-to-tr from-[#7cf9ff] to-[#0037ff] bg-clip-text text-transparent">Ready to improve your community?</h2>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">Download the CIRS app today and start making a difference in your neighborhood.</p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link href="/download-ios">
-                    <button className="flex h-10 items-center justify-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring duration-300 gap-2">
-                      <svg width="14" height="20" viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M23.1148 17.6371C23.0761 13.4472 26.6335 11.4088 26.7961 11.3139C24.7815 8.45 21.6588 8.0587 20.5615 8.0275C17.9388 7.7584 15.3948 9.5576 14.0588 9.5576C12.6961 9.5576 10.6388 8.0535 8.42146 8.0977C5.56813 8.1406 2.89879 9.7513 1.43479 12.2525C-1.58654 17.3524 0.666794 24.8469 3.56146 28.9692C5.00946 30.9881 6.70146 33.2423 8.91613 33.163C11.0828 33.0759 11.8921 31.8162 14.5068 31.8162C17.0975 31.8162 17.8575 33.163 20.1161 33.1123C22.4415 33.0759 23.9055 31.0843 25.3028 29.0472C26.9761 26.7332 27.6481 24.4543 27.6748 24.3373C27.6201 24.3191 23.1588 22.659 23.1148 17.6371Z" fill="white" />
-                        <path d="M18.8481 5.3157C20.0135 3.8948 20.8108 1.9617 20.5895 0C18.9028 0.0728 16.7935 1.1375 15.5788 2.5272C14.5041 3.7518 13.5441 5.759 13.7921 7.6466C15.6868 7.7844 17.6321 6.7145 18.8481 5.3157Z" fill="white" />
-                      </svg>
-                      Download for iOS
-                    </button>
-                  </Link>
-                  <Link href="/download-android">
-                    <button className="flex h-10 items-center justify-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring duration-300 gap-2">
-                      <svg width="14" height="16" viewBox="0 0 32 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0.8942 0.800352C0.503072 1.2001 0.276718 1.82248 0.276718 2.62848V31.378C0.276718 32.184 0.503072 32.8064 0.8942 33.2061L0.990735 33.2939L17.4913 17.1901V16.8099L0.990735 0.706104L0.8942 0.800352Z" fill="url(#paint0_linear_0_1)" />
-                        <path d="M22.9854 22.5607L17.4913 17.1901V16.8099L22.9921 11.4392L23.1153 11.5091L29.6296 15.128C31.4887 16.155 31.4887 17.845 29.6296 18.8785L23.1153 22.4909L22.9854 22.5607V22.5607Z" fill="url(#paint1_linear_0_1)" />
-                        <path d="M23.1153 22.4909L17.4913 17L0.894196 33.2061C1.51168 33.8399 2.51863 33.9162 3.66372 33.2825L23.1153 22.4909" fill="url(#paint2_linear_0_1)" />
-                        <path d="M23.1153 11.5091L3.66372 0.717505C2.51863 0.0902547 1.51168 0.166628 0.894196 0.800377L17.4913 17L23.1153 11.5091Z" fill="url(#paint3_linear_0_1)" />
-                        <defs>
-                          <linearGradient id="paint0_linear_0_1" x1="16.0263" y1="31.6774" x2="-5.78457" y2="9.33801" gradientUnits="userSpaceOnUse">
-                            <stop stopColor="#00A0FF" />
-                            <stop offset="0.0066" stopColor="#00A1FF" />
-                            <stop offset="0.2601" stopColor="#00BEFF" />
-                            <stop offset="0.5122" stopColor="#00D2FF" />
-                            <stop offset="0.7604" stopColor="#00DFFF" />
-                            <stop offset="1" stopColor="#00E3FF" />
-                          </linearGradient>
-                          <linearGradient id="paint1_linear_0_1" x1="32.0505" y1="16.9982" x2="-0.167689" y2="16.9982" gradientUnits="userSpaceOnUse">
-                            <stop stopColor="#FFE000" />
-                            <stop offset="0.4087" stopColor="#FFBD00" />
-                            <stop offset="0.7754" stopColor="#FFA500" />
-                            <stop offset="1" stopColor="#FF9C00" />
-                          </linearGradient>
-                          <linearGradient id="paint2_linear_0_1" x1="20.0571" y1="14.0151" x2="-9.52016" y2="-16.2789" gradientUnits="userSpaceOnUse">
-                            <stop stopColor="#FF3A44" />
-                            <stop offset="1" stopColor="#C31162" />
-                          </linearGradient>
-                          <linearGradient id="paint3_linear_0_1" x1="-3.28365" y1="42.7709" x2="9.92394" y2="29.2434" gradientUnits="userSpaceOnUse">
-                            <stop stopColor="#32A071" />
-                            <stop offset="0.0685" stopColor="#2DA771" />
-                            <stop offset="0.4762" stopColor="#15CF74" />
-                            <stop offset="0.8009" stopColor="#06E775" />
-                            <stop offset="1" stopColor="#00F076" />
-                          </linearGradient>
-                        </defs>
-                      </svg>
-                      Download for Android
-                    </button>
-                  </Link>
-                </div>
-              </div>
+        // ... existing code
+                </motion.section>
+        
+                {/* Download Section */}
+                <section id="download" className="py-6 md:py-12 lg:py-16 bg-emerald-50 dark:bg-[#161c28] dark:text-white">
+                  <div className="container px-4 md:px-6">
+        // ... existing code
+                    `}</style>
+                  </div>
+                </motion.section>
+        
+                {/* Download Section */}
+                <section id="download" className="py-6 md:py-12 lg:py-16 bg-emerald-50 dark:bg-[#161c28] dark:text-white">
+                  <div className="container px-4 md:px-6">
+                    <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
+                      <div className="flex flex-col justify-center space-y-4 animate-on-scroll">
+                        <div className="space-y-2">
+                          <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight bg-gradient-to-tr from-[#7cf9ff] to-[#0037ff] bg-clip-text text-transparent">Ready to improve your community?</h2>
+                          <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">Download the CIRS app today and start making a difference in your neighborhood.</p>
+                        </div>
+                        <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                          <Link href="/download-ios">
+                            <button className="flex h-10 items-center justify-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring duration-300 gap-2">
+                              <svg width="14" height="20" viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M23.1148 17.6371C23.0761 13.4472 26.6335 11.4088 26.7961 11.3139C24.7815 8.45 21.6588 8.0587 20.5615 8.0275C17.9388 7.7584 15.3948 9.5576 14.0588 9.5576C12.6961 9.5576 10.6388 8.0535 8.42146 8.0977C5.56813 8.1406 2.89879 9.7513 1.43479 12.2525C-1.58654 17.3524 0.666794 24.8469 3.56146 28.9692C5.00946 30.9881 6.70146 33.2423 8.91613 33.163C11.0828 33.0759 11.8921 31.8162 14.5068 31.8162C17.0975 31.8162 17.8575 33.163 20.1161 33.1123C22.4415 33.0759 23.9055 31.0843 25.3028 29.0472C26.9761 26.7332 27.6481 24.4543 27.6748 24.3373C27.6201 24.3191 23.1588 22.659 23.1148 17.6371Z" fill="white" />
+                                <path d="M18.8481 5.3157C20.0135 3.8948 20.8108 1.9617 20.5895 0C18.9028 0.0728 16.7935 1.1375 15.5788 2.5272C14.5041 3.7518 13.5441 5.759 13.7921 7.6466C15.6868 7.7844 17.6321 6.7145 18.8481 5.3157Z" fill="white" />
+                              </svg>
+                              Download for iOS
+                            </button>
+                          </Link>
+                          <button
+                            onClick={() => setShowComingSoon(true)}
+                            className="flex h-10 items-center justify-center rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring duration-300 gap-2"
+                            aria-haspopup="dialog"
+                            aria-expanded={showComingSoon}
+                          >
+                            <svg width="14" height="16" viewBox="0 0 32 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M0.8942 0.800352C0.503072 1.2001 0.276718 1.82248 0.276718 2.62848V31.
 
-              <div className="hidden lg:flex items-center justify-end animate-on-scroll px-6">
-                <EnhancedQRCode />
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Render ComingSoonModal when showComingSoon is true */}
+        {showComingSoon && (
+          <ComingSoonModal onClose={() => setShowComingSoon(false)} />
+        )}
+
       </main>
     </div>
   );

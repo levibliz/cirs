@@ -11,6 +11,7 @@
   "dependencies": {
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@clerk/nextjs": "^6.35.6",
+    "@prisma/client": "^7.1.0",
     "@supabase/supabase-js": "^2.86.2",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
@@ -23,6 +24,7 @@
     "react-dom": "19.2.0",
     "react-toastify": "^11.0.5",
     "reflect-metadata": "^0.2.2",
+    "svix": "^1.82.0",
     "typeorm": "^0.3.17",
     "uuid": "^13.0.0"
   },

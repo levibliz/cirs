@@ -1,16 +1,26 @@
-import { ClerkProvider } from "@clerk/nextjs";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 
-export const metadata = {
-  title: "CIRS - Community Issue Reporting System",
-  description: "Empowering citizens to report and track local civic issues for a better community.",
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Community Issue Reporting Platform",
+  description: "Submit and track community problems with ease.",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <ClerkProvider>
       <html lang="en">
-        <body>{children}</body>
+        <body className={inter.className}>
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

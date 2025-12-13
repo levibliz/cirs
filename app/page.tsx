@@ -14,6 +14,7 @@ import Link from "next/link";
 import FeaturesSection from "./components/FeaturesSection";
 import HeroSection from "./components/HeroSection";
 
+
 interface FAQ {
   id: number;
   question: string;

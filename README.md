@@ -117,31 +117,60 @@ Then open:
 
 ```
 issue-reporting-platform/
+
+
+Next.js App Router with Serverless API + Layered (Controller–Service) Architecture
+
+├── app/
+│   ├── admin/
+│   │   └── (admin-related pages and components)
+│   ├── dashboard/
+│   │   ├── components/
+│   │   │   └── api.ts
+│   │   └── (dashboard-related pages and components)
+│   ├── [[...sign-in]]/
+│   │   └── page.tsx
+│   ├── [[...sign-up]]/
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── EnhancedQRCode.tsx
+│   │   ├── FeaturesSection.tsx
+│   │   ├── HeroSection.tsx
+│   │   ├── Navbar.tsx
+│   │   └── TestimonialCarousel.tsx
+│   ├── hooks/
+│   │   └── useProfileStatus.ts
+│   ├── types/
+│   │   └── (type definitions)
+│   ├── layout.tsx
+│   └── page.tsx
 ├── backend/
-│   ├── src/
-│   │   ├── modules/
-│   │   │   └── reports/
-│   │   │       ├── controllers/
-│   │   │       ├── services/
-│   │   │       ├── repositories/
-│   │   │       ├── dto/
-│   │   │       └── entities/
-│   │   ├── config/
-│   │   └── main.ts
-│   ├── test/
-│   └── README.md
-│
-├── frontend/
-│   ├── app/               # Next.js App Router
-│   ├── components/        # UI Components
-│   ├── lib/               # Helpers, API clients
-│   └── styles/
-│
-├── database/
-│   ├── schema.sql         # Main database schema
-│   └── seed.sql           # Sample data (optional)
-│
-└── .env.example
+│   ├── controllers/
+│   │   └── services/
+│   │       └── db/
+│   │           └── utils/
+│   ├── db/
+│   ├── services/
+│   ├── types/
+│   └── utils/
+├── components/
+│   └── (Global reusable components if any)
+├── hooks/
+│   └── (Global reusable hooks if any)
+├── lib/
+│   └── supabaseClient.ts
+├── public/
+│   └── (Static assets like images, fonts, etc.)
+├── .env.example
+├── .gitignore
+├── api.rest
+├── eslint.config.mjs
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+├── README.md
+└── tsconfig.json
+
 ```
 
 

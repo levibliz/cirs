@@ -1,30 +1,28 @@
 
-import { NextResponse } from 'next/server';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { auth, clerkClient } from '@clerk/nextjs/server';
 import { supabase } from '../../../../lib/supabase';
 
 export async function GET() {
   try {
     const { userId } = await auth();
+
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Try to get user from database
+    // Get user from Clerk
+    const clerkUser = await clerkClient.users.getUser(userId);
+
+    // Try to get user from Supabase
     const { data: user, error } = await supabase
       .from('users')
       .select('*')
       .eq('id', userId)
       .single();
 
-    // If user doesn't exist, create them
-    if (error?.code === 'PGRST116') {
-      const clerkUser = await currentUser();
-      
-      if (!clerkUser) {
-        return new NextResponse('User not found', { status: 404 });
-      }
-
+    // If user doesn't exist in Supabase, create them
+    if (error && error.code === 'PGRST116') {
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert({
@@ -32,14 +30,14 @@ export async function GET() {
           email: clerkUser.emailAddresses[0]?.emailAddress || '',
           first_name: clerkUser.firstName || '',
           last_name: clerkUser.lastName || '',
-          role: 'user'
+          role: 'user',
         })
         .select()
         .single();
 
       if (createError) {
         console.error('Error creating user:', createError);
-        return new NextResponse('Failed to create user', { status: 500 });
+        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
       }
 
       return NextResponse.json(newUser);
@@ -47,49 +45,81 @@ export async function GET() {
 
     if (error) {
       console.error('Error fetching user:', error);
-      return new NextResponse('Database error', { status: 500 });
+      return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 });
     }
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Unexpected error:', error);
-    return new NextResponse('Internal server error', { status: 500 });
+    console.error('[USER_GET]', error);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(request: NextRequest) {
   try {
     const { userId } = await auth();
+
     if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { first_name, last_name, role } = body;
+    const body = await request.json();
+    const { firstName, lastName, address, phoneNumber } = body;
 
-    const { data: updatedUser, error } = await supabase
+    // Check if user exists first
+    const { data: existingUser } = await supabase
       .from('users')
-      .update({ 
-        first_name, 
-        last_name, 
-        role,
-        updated_at: new Date().toISOString()
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    // If user doesn't exist, create them first
+    if (!existingUser) {
+      const clerkUser = await clerkClient.users.getUser(userId);
+      
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          email: clerkUser.emailAddresses[0]?.emailAddress || '',
+          first_name: firstName || clerkUser.firstName || '',
+          last_name: lastName || clerkUser.lastName || '',
+          address: address || null,
+          phone_number: phoneNumber || null,
+          role: 'user',
+        })
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating user:', createError);
+        return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+      }
+
+      return NextResponse.json(newUser);
+    }
+
+    // Update existing user
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        address: address,
+        phone_number: phoneNumber,
       })
       .eq('id', userId)
       .select()
       .single();
 
-    if (error) {
-      console.error('Error updating user:', error);
-      return new NextResponse(JSON.stringify({ error: error.message }), { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (updateError) {
+      console.error('Error updating user:', updateError);
+      return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
     }
 
     return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error('Unexpected error:', error);
-    return new NextResponse('Internal server error', { status: 500 });
+    console.error('[USER_PATCH]', error);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

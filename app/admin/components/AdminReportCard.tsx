@@ -153,12 +153,19 @@ export default function AdminReportCard({
         <div className="flex gap-2 mt-3">
           <select
             disabled={busy}
-            defaultValue=""
+            value=""
             onChange={(e) => {
-              const value = e.target.value;
-              if (value) setStatus(value as ReportStatus);
+              const val = e.target.value as ReportStatus; // <--- cast to ReportStatus
+              if (!val) return;
+              setStatus(val);
             }}
             className="px-3 py-2 rounded-md text-sm"
+            style={{
+              border: "1px solid var(--primary-200)",
+              background: "var(--bg)",
+              color: "var(--fg)",
+            }}
+            aria-label="Change status"
           >
             <option value="">Change status</option>
             {STATUS_FLOW[report.status].map((s) => (

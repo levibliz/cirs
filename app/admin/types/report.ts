@@ -9,4 +9,5 @@ export interface Report {
   imageUrl?: string | null;
   status: ReportStatus;
   createdAt: string;
+  userId?: string;
 }

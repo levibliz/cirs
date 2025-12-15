@@ -1,171 +1,112 @@
-"use client";
+'use client';
 
-import { Camera, TrendingUp, Users } from "lucide-react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 
-export default function FeaturesSection() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.2, delayChildren: 0.1 }
-    }
-  };
+export default function EnhancedQRCode() {
+  const [mounted, setMounted] = useState(false);
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const features = [
-    {
-      id: 1,
-      icon: Camera,
-      title: "Report Issues",
-      description: "Easily report problems with photos, location data, and detailed descriptions for faster resolution.",
-      items: ["Photo uploads", "Map integration", "Categorized issues"]
-    },
-    {
-      id: 2,
-      icon: TrendingUp,
-      title: "Track Progress",
-      description: "Follow the status of your reports from submission to resolution with real-time insights.",
-      items: ["Real-time updates", "Status notifications", "Resolution timeline"]
-    },
-    {
-      id: 3,
-      icon: Users,
-      title: "Community Voting",
-      description: "Upvote issues in your area to help prioritize what matters most to your community.",
-      items: ["Issue upvoting", "Trending issues", "Community feedback"]
-    }
-  ];
+  // Deterministic QR pattern (memoized)
+  const qrPattern = useMemo(() => {
+    return Array.from({ length: 36 }, (_, i) => (i * 7) % 2 === 0);
+  }, []);
+
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <motion.div
+      initial={{ scale: 0.95, opacity: 0 }}
+      whileInView={{ scale: 1, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="relative"
+    >
+      {children}
+    </motion.div>
+  );
+
+  if (!mounted) {
+    return (
+      <Wrapper>
+        <div className="relative w-64 h-64 bg-white rounded-2xl shadow-xl border border-gray-200 flex items-center justify-center">
+          <div className="w-32 h-32 bg-gray-100 rounded-lg animate-pulse" />
+        </div>
+      </Wrapper>
+    );
+  }
 
   return (
-    <section 
-      className="w-full py-20"
-      style={{
-        background: `linear-gradient(to bottom, var(--bg), rgba(37, 99, 235, 0.03))`
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-6 text-center">
-        
-        {/* Badge */}
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="inline-block px-4 py-1 rounded-full text-sm font-medium mb-4"
-          style={{
-            backgroundColor: 'var(--primary-100)',
-            color: 'var(--primary-700)'
-          }}
+    <Wrapper>
+      <div className="relative w-64 h-64 bg-white rounded-2xl shadow-xl border border-gray-200 flex items-center justify-center p-4">
+        <svg
+          viewBox="0 0 100 100"
+          className="w-full h-full"
+          style={{ width: 240, height: 240 }}
         >
-          Features
-        </motion.div>
+          {/* Border */}
+          <rect x="0" y="0" width="100" height="100" fill="white" stroke="var(--primary-600)" strokeWidth="2" />
 
-        {/* Heading */}
-        <motion.h1 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-4xl md:text-5xl font-bold"
-          style={{ color: 'var(--fg)' }}
-        >
-          Everything you need <br />
-          <span 
-            style={{
-              background: 'linear-gradient(90deg, var(--primary-600), var(--accent-500))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}
-          >
-            to improve your community
-          </span>
-        </motion.h1>
+          {/* Finder patterns */}
+          {[
+            [2, 2],
+            [78, 2],
+            [2, 78],
+          ].map(([x, y], i) => (
+            <g key={i}>
+              <rect x={x} y={y} width="20" height="20" fill="var(--primary-600)" />
+              <rect x={x + 2} y={y + 2} width="16" height="16" fill="white" />
+              <rect x={x + 4} y={y + 4} width="12" height="12" fill="var(--primary-600)" />
+            </g>
+          ))}
 
-        {/* Subheading */}
-        <motion.p 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mt-4 max-w-2xl mx-auto"
-          style={{ color: 'var(--muted)' }}
-        >
-          CIRS provides a comprehensive platform for citizens and city workers to collaborate 
-          on local issues and build stronger communities together.
-        </motion.p>
+          {/* Timing patterns */}
+          {Array.from({ length: 13 }).map((_, i) => (
+            <rect
+              key={`th-${i}`}
+              x={i * 4 + 24}
+              y="8"
+              width="4"
+              height="4"
+              fill={i % 2 === 0 ? 'var(--primary-600)' : 'white'}
+            />
+          ))}
 
-        {/* Cards */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={containerVariants}
-        >
-          
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <motion.div 
-                key={feature.id}
-                className="rounded-2xl p-8 text-left shadow-lg border transition-all hover:shadow-xl hover:-translate-y-2"
-                style={{
-                  backgroundColor: 'var(--bg)',
-                  borderColor: 'var(--glass-border)',
-                }}
-                variants={itemVariants}
-              >
-                <div 
-                  className="p-3 rounded-xl w-fit mb-4"
-                  style={{
-                    backgroundColor: 'var(--primary-100)',
-                    color: 'var(--primary-600)'
-                  }}
-                >
-                  <Icon size={26} />
-                </div>
-                
-                <h3 
-                  className="text-xl font-semibold mb-2"
-                  style={{ color: 'var(--fg)' }}
-                >
-                  {feature.title}
-                </h3>
-                
-                <p 
-                  className="mb-4"
-                  style={{ color: 'var(--muted)' }}
-                >
-                  {feature.description}
-                </p>
-                
-                <ul 
-                  className="space-y-2"
-                  style={{ color: 'var(--fg)' }}
-                >
-                  {feature.items.map((item, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                      <span 
-                        style={{ color: 'var(--accent-500)' }}
-                        className="font-bold"
-                      >
-                        ✔
-                      </span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            );
-          })}
+          {Array.from({ length: 13 }).map((_, i) => (
+            <rect
+              key={`tv-${i}`}
+              x="8"
+              y={i * 4 + 24}
+              width="4"
+              height="4"
+              fill={i % 2 === 0 ? 'var(--primary-600)' : 'white'}
+            />
+          ))}
 
-        </motion.div>
+          {/* Data blocks */}
+          {qrPattern.map((fill, i) => (
+            <rect
+              key={i}
+              x={40 + (i % 6) * 5}
+              y={40 + Math.floor(i / 6) * 5}
+              width="4"
+              height="4"
+              fill={fill ? 'var(--primary-600)' : 'white'}
+            />
+          ))}
+
+          {/* Center accent */}
+          <rect x="44" y="44" width="12" height="12" fill="var(--accent-500)" opacity="0.3" rx="2" />
+        </svg>
       </div>
-    </section>
+
+      <div className="text-center mt-4">
+        <p style={{ color: 'var(--fg)', fontWeight: 600 }}>Download CIRS</p>
+        <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>
+          Scan to get the app
+        </p>
+      </div>
+    </Wrapper>
   );
 }

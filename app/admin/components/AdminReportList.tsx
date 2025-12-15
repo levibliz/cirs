@@ -2,7 +2,7 @@
 
 import { Report } from "../types/report";
 import AdminReportCard from "./AdminReportCard";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 
 interface AdminReportListProps {
   reports: Report[];
@@ -11,11 +11,22 @@ interface AdminReportListProps {
   onEdit: (id: string, patch: Partial<Report>) => void;
 }
 
-export default function AdminReportList({ 
-  reports, 
-  onUpdate, 
-  onDelete, 
-  onEdit 
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+export default function AdminReportList({
+  reports,
+  onUpdate,
+  onDelete,
+  onEdit,
 }: AdminReportListProps) {
   if (reports.length === 0) {
     return (
@@ -26,26 +37,28 @@ export default function AdminReportList({
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
       transition={{ duration: 0.3 }}
     >
       <AnimatePresence mode="popLayout">
         {reports.map((report) => (
           <motion.div
             key={report.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            variants={itemVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             transition={{ duration: 0.3 }}
           >
-            <AdminReportCard 
-              report={report} 
-              onUpdate={onUpdate} 
-              onDelete={onDelete} 
-              onEdit={onEdit} 
+            <AdminReportCard
+              report={report}
+              onUpdate={onUpdate}
+              onDelete={onDelete}
+              onEdit={onEdit}
             />
           </motion.div>
         ))}

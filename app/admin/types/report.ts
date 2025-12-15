@@ -8,6 +8,6 @@ export interface Report {
   location: string;
   imageUrl?: string | null;
   status: ReportStatus;
-  createdAt: string;
+  createdAt: string | Date;
   userId?: string;
 }

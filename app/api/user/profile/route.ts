@@ -1,56 +1,42 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { db } from '../../../../lib/db';
+import { supabase } from '../../../../lib/supabase';
 
-// Handler to get the current user's profile
 export async function GET() {
-  try {
-    const { userId } = auth();
+  const { userId } = await auth();
+  if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', userId)
+    .single();
 
-    const user = await db.user.findUnique({
-      where: {
-        clerkId: userId,
-      },
-    });
-
-    if (!user) {
-      return new NextResponse('User not found', { status: 404 });
-    }
-
-    return NextResponse.json(user);
-  } catch (error) {
-    console.error('[PROFILE_GET]', error);
-    return new NextResponse('Internal Error', { status: 500 });
+  if (error || !user) {
+    return new NextResponse('User not found', { status: 404 });
   }
+
+  return NextResponse.json(user);
 }
 
-// Handler to update the current user's profile
 export async function PATCH(req: Request) {
-  try {
-    const { userId } = auth();
-    const values = await req.json();
+  const { userId } = await auth();
+  if (!userId) return new NextResponse('Unauthorized', { status: 401 });
 
-    if (!userId) {
-      return new NextResponse('Unauthorized', { status: 401 });
-    }
+  const values = await req.json();
+  const { first_name, last_name, role } = values;
 
-    const user = await db.user.update({
-      where: {
-        clerkId: userId,
-      },
-      data: {
-        ...values,
-      },
-    });
+  const { data: updatedUser, error } = await supabase
+    .from('users')
+    .update({ first_name, last_name, role })
+    .eq('id', userId)
+    .select()
+    .single();
 
-    return NextResponse.json(user);
-  } catch (error) {
-    console.error('[PROFILE_PATCH]', error);
-    return new NextResponse('Internal Error', { status: 500 });
+  if (error) {
+    return new NextResponse('Update failed', { status: 500 });
   }
+
+  return NextResponse.json(updatedUser);
 }

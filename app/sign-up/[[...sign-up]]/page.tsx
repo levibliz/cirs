@@ -4,14 +4,20 @@ import { SignUp } from "@clerk/nextjs";
 
 export default function SignUpPage() {
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <SignUp
-        appearance={{
-          elements: {
-            formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
-          },
-        }}
-      />
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md">
+        <SignUp 
+          appearance={{
+            elements: {
+              rootBox: "mx-auto",
+              card: "shadow-lg"
+            }
+          }}
+          routing="path"
+          path="/sign-up"
+          signInUrl="/sign-in"
+        />
+      </div>
     </div>
   );
 }

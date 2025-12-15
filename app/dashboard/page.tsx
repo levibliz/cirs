@@ -8,12 +8,31 @@ import { supabase } from "../../lib/supabaseClient";
 import { Report } from "./types/report";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useUser } from '@clerk/nextjs';
+import { useProfileStatus } from '../../hooks/use-profile-status';
+import CompleteProfileForm from '../../components/dashboard/complete-profile-form';
+import { Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const { getToken } = useAuth();
+  const { user } = useUser();
+  const { isProfileComplete, isLoading } = useProfileStatus();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-emerald-500" />
+        <span className="ml-4 text-lg">Loading your dashboard...</span>
+      </div>
+    );
+  }
+
+  if (!isProfileComplete) {
+    return <CompleteProfileForm />;
+  }
 
   const loadReports = async () => {
     setLoading(true);
@@ -252,7 +271,7 @@ export default function Dashboard() {
                         {status
                           .charAt(0)
                           .toUpperCase()
-                          .concat(status.slice(1).replace("-", " "))}
+                          .concat(status.slice(1).replace("-", " "))} 
                       </button>
                     ))}
                   </div>

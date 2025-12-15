@@ -31,8 +31,8 @@ export default function Navbar() {
             <Link href="/#faqs" className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
               FAQs
             </Link>
-            <Link href="/#download" className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-              Download
+            <Link href="/dashboard" className="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              Dashboard
             </Link>
             
             <div className="flex items-center gap-3">

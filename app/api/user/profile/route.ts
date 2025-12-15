@@ -1,7 +1,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { supabase } from '../../../../lib/supabase';
+import { clerkClient } from '@clerk/nextjs/server';
 
 export async function GET() {
   try {
@@ -12,7 +13,8 @@ export async function GET() {
     }
 
     // Get user from Clerk
-    const clerkUser = await clerkClient.users.getUser(userId);
+    const client = await clerkClient();
+    const clerkUser = await client.users.getUser(userId);
 
     // Try to get user from Supabase
     const { data: user, error } = await supabase
@@ -75,7 +77,8 @@ export async function PATCH(request: NextRequest) {
 
     // If user doesn't exist, create them first
     if (!existingUser) {
-      const clerkUser = await clerkClient.users.getUser(userId);
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(userId);
       
       const { data: newUser, error: createError } = await supabase
         .from('users')

@@ -1,34 +1,33 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { db } from '../../../../lib/db';
+import { supabase } from '../../../../lib/supabase';
 
 export async function GET() {
   try {
-    const { userId } = auth();
+    const { userId } = await auth();
 
     if (!userId) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const user = await db.user.findUnique({
-      where: {
-        clerkId: userId,
-      },
-    });
+    // Query Supabase for user data
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-    if (!user) {
-      // This case might happen if the user record is not yet created in your DB.
-      // Depending on your logic, you might create it here or handle it differently.
+    if (error || !user) {
+      // User doesn't exist in Supabase yet
       return NextResponse.json({ isProfileComplete: false });
     }
 
-    // Define what "complete" means. For example, all these fields must be non-null.
+    // Check if profile is complete based on your users table
     const isProfileComplete = Boolean(
-      user.firstName &&
-      user.lastName &&
-      user.address &&
-      user.phoneNumber
+      user.first_name &&
+      user.last_name &&
+      user.email
     );
 
     return NextResponse.json({ isProfileComplete });

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Report } from "../types/report";
+import { Report, ReportStatus } from "../types/report";
 
-const STATUS_FLOW: Record<string, string[]> = {
+const STATUS_FLOW: Record<ReportStatus, ReportStatus[]> = {
   pending: ["in-progress", "resolved"],
   "in-progress": ["resolved"],
   resolved: [],
@@ -25,7 +25,7 @@ export default function AdminReportCard({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ title: report.title, description: report.description, location: report.location });
 
-  const setStatus = async (next: string) => {
+  const setStatus = async (next: ReportStatus) => {
     setBusy(true);
     try {
       onUpdate(report.id, { status: next });
@@ -83,7 +83,7 @@ export default function AdminReportCard({
         </div>
 
         <div className="flex gap-2 mt-3">
-          <select disabled={busy} defaultValue="" onChange={(e) => { const val = e.target.value; if (!val) return; setStatus(val); (e.target as HTMLSelectElement).value = ""; }} className="px-3 py-2 rounded-md text-sm" style={{ border: "1px solid var(--primary-200)", background: "var(--bg)", color: "var(--fg)" }} aria-label="Change status">
+          <select disabled={busy} defaultValue="" onChange={(e) => { const val = e.target.value as ReportStatus; if (!val) return; setStatus(val); (e.target as HTMLSelectElement).value = ""; }} className="px-3 py-2 rounded-md text-sm" style={{ border: "1px solid var(--primary-200)", background: "var(--bg)", color: "var(--fg)" }} aria-label="Change status">
             <option value="">Change status</option>
             {STATUS_FLOW[report.status].map((s) => <option key={s} value={s}>{s.replace("-", " ")}</option>)}
           </select>

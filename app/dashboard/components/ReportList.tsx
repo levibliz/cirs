@@ -3,8 +3,13 @@
 import { motion } from "framer-motion";
 import ReportCard from "./ReportCard";
 import { Report } from "../types/report";
+import { AnimatePresence } from "framer-motion";
 
-export default function ReportList({ reports }: { reports: Report[] }) {
+interface ReportListProps {
+  reports: Report[];
+}
+
+export default function ReportList({ reports }: ReportListProps) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -25,11 +30,13 @@ export default function ReportList({ reports }: { reports: Report[] }) {
       animate="visible"
       variants={containerVariants}
     >
-      {reports.map((r) => (
-        <motion.div key={r.id} variants={itemVariants}>
-          <ReportCard report={r} />
-        </motion.div>
-      ))}
+      <AnimatePresence mode="popLayout">
+        {reports.map((r) => (
+          <motion.div key={r.id} variants={itemVariants}>
+            <ReportCard report={r} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </motion.div>
   );
 }

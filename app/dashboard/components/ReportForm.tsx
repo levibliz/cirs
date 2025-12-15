@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, FormEvent } from 'react';
 import { createReport } from '../lib/api';
-import { supabase } from '../../../lib/supabaseClient';
-import { useUser, useAuth } from '@clerk/nextjs';
 import { Report } from '../types/report';
+import { useUser, useAuth } from '@clerk/nextjs';
+import { supabase } from '../../../lib/supabaseClient';
+import { useState, FormEvent } from 'react';
 
 const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
   const [title, setTitle] = useState('');
@@ -52,19 +52,45 @@ const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
 
       // 1. Handle image upload if a file is selected
       if (imageFile) {
-        const fileName = `${user.id}/${Date.now()}_${imageFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('report-images')
-          .upload(fileName, imageFile);
+        try {
+          const fileName = `${user.id}/${Date.now()}_${imageFile.name}`;
+          
+          // Check if bucket exists first
+          const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+          
+          if (bucketsError) {
+            console.warn('Could not check storage buckets:', bucketsError);
+          }
+          
+          const bucketExists = buckets?.some(bucket => bucket.name === 'report-images');
+          
+          if (!bucketExists) {
+            console.warn('Storage bucket "report-images" does not exist. Skipping image upload.');
+            setError('Image upload is currently unavailable. Your report will be submitted without an image.');
+            // Continue without image
+          } else {
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('report-images')
+              .upload(fileName, imageFile);
 
-        if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+            if (uploadError) {
+              console.error('Image upload error:', uploadError);
+              setError(`Image upload failed: ${uploadError.message}. Your report will be submitted without an image.`);
+              // Continue without image
+            } else {
+              // Get public URL
+              const { data: urlData } = supabase.storage
+                .from('report-images')
+                .getPublicUrl(uploadData.path);
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('report-images')
-          .getPublicUrl(uploadData.path);
-
-        reportData.imageUrl = urlData.publicUrl; // save this to your report
+              reportData.imageUrl = urlData.publicUrl;
+            }
+          }
+        } catch (imageError: any) {
+          console.error('Image upload error:', imageError);
+          setError(`Image upload failed: ${imageError.message}. Your report will be submitted without an image.`);
+          // Continue without image
+        }
       }
 
       // 2. Get auth token for backend API call
@@ -78,10 +104,7 @@ const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
       reportData.category = finalCategory;
 
       // 4. Submit the report
-      const newReport = await createReport(
-        reportData,
-        token,
-      );
+      const newReport = await createReport(reportData, token);
 
       // 5. Reset form and notify parent
       setTitle('');
@@ -91,6 +114,7 @@ const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
       setLocation('');
       setImageFile(null);
       setImageUrl('');
+      setError(null); // Clear any image upload warnings
       onCreate(newReport);
     } catch (err: any) {
       console.error('Failed to create report:', err);
@@ -103,7 +127,18 @@ const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-gray-800">Create a New Report</h2>
-      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">{error}</div>}
+      {error && (
+        <div 
+          className={`border px-4 py-3 rounded relative ${
+            error.includes('Image upload') && error.includes('unavailable') 
+              ? 'bg-yellow-100 border-yellow-400 text-yellow-700' 
+              : 'bg-red-100 border-red-400 text-red-700'
+          }`} 
+          role="alert"
+        >
+          {error}
+        </div>
+      )}
       
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>

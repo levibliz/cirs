@@ -1,5 +1,5 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import ReportList from "./components/ReportList";
 import { getReports } from "./lib/api";
 import ReportForm from "./components/ReportForm";
@@ -21,7 +21,6 @@ export default function Dashboard() {
   const { user } = useUser();
   const { isProfileComplete, isLoading } = useProfileStatus();
 
-  // Move all hooks BEFORE any conditional returns
   const loadReports = async () => {
     setLoading(true);
     try {
@@ -36,11 +35,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    // Only load reports if profile is complete
     if (!isLoading && isProfileComplete) {
       loadReports();
 
-      // subscribe to realtime changes on reports table
       if (!supabase) {
         console.warn('Skipping Supabase realtime subscription: supabase client not configured');
         return;
@@ -52,10 +49,11 @@ export default function Dashboard() {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'reports' },
           (payload) => {
-            const record = payload.record as any;
             const type = payload.eventType;
-
-            if (type === 'INSERT') {
+            
+            // Type guard for different payload types
+            if (type === 'INSERT' && 'new' in payload) {
+              const record = payload.new as any;
               setReports((prev) => [
                 {
                   id: record.id,
@@ -69,7 +67,8 @@ export default function Dashboard() {
                 },
                 ...prev,
               ]);
-            } else if (type === 'UPDATE') {
+            } else if (type === 'UPDATE' && 'new' in payload) {
+              const record = payload.new as any;
               setReports((prev) => prev.map((r) => (r.id === record.id ? {
                 id: record.id,
                 title: record.title,
@@ -80,7 +79,8 @@ export default function Dashboard() {
                 imageUrl: record.image_url,
                 createdAt: record.created_at,
               } : r)));
-            } else if (type === 'DELETE') {
+            } else if (type === 'DELETE' && 'old' in payload) {
+              const record = payload.old as any;
               setReports((prev) => prev.filter((r) => r.id !== record.id));
             }
           },
@@ -88,12 +88,15 @@ export default function Dashboard() {
         .subscribe();
 
       return () => {
-        try { channel.unsubscribe(); } catch (e) { /* ignore */ }
+        try { 
+          channel.unsubscribe(); 
+        } catch (e) { 
+          console.error('Error unsubscribing:', e);
+        }
       };
     }
-  }, [isLoading, isProfileComplete]); // Add dependencies
+  }, [isLoading, isProfileComplete, getToken]);
 
-  // NOW do conditional rendering AFTER all hooks
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-screen">
@@ -141,7 +144,6 @@ export default function Dashboard() {
       style={{ backgroundColor: "var(--bg)", color: "var(--fg)" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,7 +177,6 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
-        {/* Stats Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -208,9 +209,7 @@ export default function Dashboard() {
           ))}
         </motion.div>
 
-        {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
-          {/* Left: Report Form */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -220,7 +219,6 @@ export default function Dashboard() {
             <ReportForm onCreate={(r) => setReports([r, ...reports])} />
           </motion.div>
 
-          {/* Right: Report List */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -235,7 +233,6 @@ export default function Dashboard() {
                 backdropFilter: "blur(10px)",
               }}
             >
-              {/* Header with Filter */}
               <div
                 className="border-b p-4 md:p-6"
                 style={{ borderColor: "var(--glass-border)" }}
@@ -254,7 +251,6 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  {/* Filter Buttons */}
                   <div className="flex flex-wrap gap-2">
                     {["all", "pending", "in-progress", "resolved"].map((status) => (
                       <button
@@ -282,15 +278,14 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Report List */}
               <div className="p-4 md:p-6">
                 {loading ? (
                   <div className="flex justify-center py-12">
                     <div
-                      className="animate-spin rounded-full h-12 w-12"
+                      className="animate-spin rounded-full h-12 w-12 border-4"
                       style={{
                         borderColor: "var(--primary-200)",
-                        borderTop: "3px solid var(--primary-600)",
+                        borderTopColor: "var(--primary-600)",
                       }}
                     />
                   </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useAuth, useUser, SignInButton, SignUpButton, UserButton } from "@clerk/clerk-react";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { toast, ToastContainer } from 'react-toastify';
 import Navbar from "./components/Navbar";
 import useProfileStatus from "./hooks/useProfileStatus";

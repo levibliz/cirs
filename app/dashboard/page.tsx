@@ -21,19 +21,7 @@ export default function Dashboard() {
   const { user } = useUser();
   const { isProfileComplete, isLoading } = useProfileStatus();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-emerald-500" />
-        <span className="ml-4 text-lg">Loading your dashboard...</span>
-      </div>
-    );
-  }
-
-  if (!isProfileComplete) {
-    return <CompleteProfileForm />;
-  }
-
+  // Move all hooks BEFORE any conditional returns
   const loadReports = async () => {
     setLoading(true);
     try {
@@ -48,26 +36,41 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    loadReports();
+    // Only load reports if profile is complete
+    if (!isLoading && isProfileComplete) {
+      loadReports();
 
-    // subscribe to realtime changes on reports table (only if supabase client configured)
-    if (!supabase) {
-      console.warn('Skipping Supabase realtime subscription: supabase client not configured');
-      return;
-    }
+      // subscribe to realtime changes on reports table
+      if (!supabase) {
+        console.warn('Skipping Supabase realtime subscription: supabase client not configured');
+        return;
+      }
 
-    const channel = supabase
-      .channel('public:reports')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'reports' },
-        (payload) => {
-          const record = payload.record as any;
-          const type = payload.eventType;
+      const channel = supabase
+        .channel('public:reports')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reports' },
+          (payload) => {
+            const record = payload.record as any;
+            const type = payload.eventType;
 
-          if (type === 'INSERT') {
-            setReports((prev) => [
-              {
+            if (type === 'INSERT') {
+              setReports((prev) => [
+                {
+                  id: record.id,
+                  title: record.title,
+                  description: record.description,
+                  category: record.category,
+                  location: record.location,
+                  status: record.status,
+                  imageUrl: record.image_url,
+                  createdAt: record.created_at,
+                },
+                ...prev,
+              ]);
+            } else if (type === 'UPDATE') {
+              setReports((prev) => prev.map((r) => (r.id === record.id ? {
                 id: record.id,
                 title: record.title,
                 description: record.description,
@@ -76,32 +79,33 @@ export default function Dashboard() {
                 status: record.status,
                 imageUrl: record.image_url,
                 createdAt: record.created_at,
-              },
-              ...prev,
-            ]);
-          } else if (type === 'UPDATE') {
-            setReports((prev) => prev.map((r) => (r.id === record.id ? {
-              id: record.id,
-              title: record.title,
-              description: record.description,
-              category: record.category,
-              location: record.location,
-              status: record.status,
-              imageUrl: record.image_url,
-              createdAt: record.created_at,
-            } : r)));
-          } else if (type === 'DELETE') {
-            setReports((prev) => prev.filter((r) => r.id !== record.id));
-          }
-        },
-      )
-      .subscribe();
+              } : r)));
+            } else if (type === 'DELETE') {
+              setReports((prev) => prev.filter((r) => r.id !== record.id));
+            }
+          },
+        )
+        .subscribe();
 
-    return () => {
-      // cleanup subscription
-      try { channel.unsubscribe(); } catch (e) { /* ignore */ }
-    };
-  }, []);
+      return () => {
+        try { channel.unsubscribe(); } catch (e) { /* ignore */ }
+      };
+    }
+  }, [isLoading, isProfileComplete]); // Add dependencies
+
+  // NOW do conditional rendering AFTER all hooks
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-screen">
+        <Loader2 className="h-12 w-12 animate-spin text-emerald-500" />
+        <span className="ml-4 text-lg">Loading your dashboard...</span>
+      </div>
+    );
+  }
+
+  if (!isProfileComplete) {
+    return <CompleteProfileForm />;
+  }
 
   const filteredReports =
     filter === "all"

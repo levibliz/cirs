@@ -13,6 +13,7 @@ const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
   const [otherCategory, setOtherCategory] = useState('');
   const [location, setLocation] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,6 +90,7 @@ const ReportForm = ({ onCreate }: { onCreate: (report: Report) => void }) => {
       setOtherCategory('');
       setLocation('');
       setImageFile(null);
+      setImageUrl('');
       onCreate(newReport);
     } catch (err: any) {
       console.error('Failed to create report:', err);

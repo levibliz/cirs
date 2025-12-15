@@ -1,35 +1,53 @@
 
-import useSWR from 'swr';
-
-// A simple fetcher function that can be used with SWR
-// It fetches data from a URL and parses it as JSON.
-const fetcher = (url: string) => fetch(url).then((res) => {
-  // If the user is not found in our DB, the API returns a 404.
-  // We can treat this as a valid state meaning "profile does not exist".
-  if (res.status === 404) {
-    return null;
-  }
-  if (!res.ok) {
-    throw new Error('An error occurred while fetching the data.');
-  }
-  return res.json();
-});
+import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 
 export function useProfileStatus() {
-  // Use SWR to fetch the profile data from our API route.
-  // SWR handles caching, revalidation, and more automatically.
-  const { data, error, isLoading } = useSWR('/api/user/profile', fetcher);
+  const { user, isLoaded } = useUser();
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Determine if the profile is complete.
-  // It's incomplete if:
-  // 1. The API returned null (user not in our DB).
-  // 2. Any of the required fields (phone, address) are missing.
-  const isProfileComplete = !!(data && data.phone && data.address);
+  useEffect(() => {
+    async function checkProfile() {
+      if (!isLoaded) {
+        setIsLoading(true);
+        return;
+      }
 
-  return {
-    profile: data,
-    isLoading,
-    isError: error,
-    isProfileComplete,
-  };
+      if (!user) {
+        setIsLoading(false);
+        setIsProfileComplete(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/user/profile');
+        
+        if (!response.ok) {
+          setIsProfileComplete(false);
+          return;
+        }
+
+        const profile = await response.json();
+        
+        // Check if profile has required fields
+        const hasRequiredFields = !!(
+          profile.first_name &&
+          profile.last_name &&
+          profile.email
+        );
+
+        setIsProfileComplete(hasRequiredFields);
+      } catch (error) {
+        console.error('Error checking profile:', error);
+        setIsProfileComplete(false);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    checkProfile();
+  }, [user, isLoaded]);
+
+  return { isProfileComplete, isLoading };
 }
